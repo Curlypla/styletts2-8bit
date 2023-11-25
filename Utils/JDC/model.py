@@ -64,10 +64,10 @@ class JDCNet(nn.Module):
             batch_first=True, bidirectional=True)  # (b, 31, 512)
 
         # input: (b * 31, 512)
-        self.classifier = bnb.nn.Linear8bitLt(in_features=512, out_features=self.num_class)  # (b * 31, num_class)
+        self.classifier = nn.Linear(in_features=512, out_features=self.num_class)  # (b * 31, num_class)
 
         # input: (b * 31, 512)
-        self.detector = bnb.nn.Linear8bitLt(in_features=512, out_features=2)  # (b * 31, 2) - binary classifier
+        self.detector = nn.Linear(in_features=512, out_features=2)  # (b * 31, 2) - binary classifier
 
         # initialize weights
         self.apply(self.init_weights)

@@ -107,7 +107,7 @@ class StyleTransformer1d(nn.Module):
         if use_context_features:
             assert exists(context_features) and exists(context_mapping_features)
             self.to_features = nn.Sequential(
-                bnb.nn.Linear8bitLt(
+                nn.Linear(
                     in_features=context_features, out_features=context_mapping_features
                 ),
                 nn.GELU(),
@@ -253,10 +253,10 @@ class StyleAttention(nn.Module):
 
         self.norm = AdaLayerNorm(style_dim, features)
         self.norm_context = AdaLayerNorm(style_dim, context_features)
-        self.to_q = bnb.nn.Linear8bitLt(
+        self.to_q = nn.Linear(
             in_features=features, out_features=mid_features, bias=False
         )
-        self.to_kv = bnb.nn.Linear8bitLt(
+        self.to_kv = nn.Linear(
             in_features=context_features, out_features=mid_features * 2, bias=False
         )
         self.attention = AttentionBase(
@@ -349,7 +349,7 @@ class Transformer1d(nn.Module):
         if use_context_features:
             assert exists(context_features) and exists(context_mapping_features)
             self.to_features = nn.Sequential(
-                bnb.nn.Linear8bitLt(
+                nn.Linear(
                     in_features=context_features, out_features=context_mapping_features
                 ),
                 nn.GELU(),
@@ -484,9 +484,9 @@ class RelativePositionBias(nn.Module):
 def FeedForward(features: int, multiplier: int) -> nn.Module:
     mid_features = features * multiplier
     return nn.Sequential(
-        bnb.nn.Linear8bitLt(in_features=features, out_features=mid_features),
+        nn.Linear(in_features=features, out_features=mid_features),
         nn.GELU(),
-        bnb.nn.Linear8bitLt(in_features=mid_features, out_features=features),
+        nn.Linear(in_features=mid_features, out_features=features),
     )
 
 
@@ -518,7 +518,7 @@ class AttentionBase(nn.Module):
         if out_features is None:
             out_features = features
             
-        self.to_out = bnb.nn.Linear8bitLt(in_features=mid_features, out_features=out_features)
+        self.to_out = nn.Linear(in_features=mid_features, out_features=out_features)
 
     def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
         # Split heads
@@ -555,10 +555,10 @@ class Attention(nn.Module):
 
         self.norm = nn.LayerNorm(features)
         self.norm_context = nn.LayerNorm(context_features)
-        self.to_q = bnb.nn.Linear8bitLt(
+        self.to_q = nn.Linear(
             in_features=features, out_features=mid_features, bias=False
         )
-        self.to_kv = bnb.nn.Linear8bitLt(
+        self.to_kv = nn.Linear(
             in_features=context_features, out_features=mid_features * 2, bias=False
         )
 
@@ -674,7 +674,7 @@ class LearnedPositionalEmbedding(nn.Module):
 def TimePositionalEmbedding(dim: int, out_features: int) -> nn.Module:
     return nn.Sequential(
         LearnedPositionalEmbedding(dim),
-        bnb.nn.Linear8bitLt(in_features=dim + 1, out_features=out_features),
+        nn.Linear(in_features=dim + 1, out_features=out_features),
     )
 
 class FixedEmbedding(nn.Module):
