@@ -249,7 +249,7 @@ class SourceModuleHnNSF(torch.nn.Module):
                                  sine_amp, add_noise_std, voiced_threshod)
 
         # to merge source harmonics into a single excitation
-        self.l_linear = torch.bnb.nn.Linear8bitLt(harmonic_num + 1, 1)
+        self.l_linear = bnb.nn.Linear8bitLt(harmonic_num + 1, 1)
         self.l_tanh = torch.nn.Tanh()
 
     def forward(self, x):

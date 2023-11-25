@@ -25,7 +25,7 @@ def _get_activation_fn(activ):
 class LinearNorm(torch.nn.Module):
     def __init__(self, in_dim, out_dim, bias=True, w_init_gain='linear'):
         super(LinearNorm, self).__init__()
-        self.linear_layer = torch.bnb.nn.Linear8bitLt(in_dim, out_dim, bias=bias)
+        self.linear_layer = bnb.nn.Linear8bitLt(in_dim, out_dim, bias=bias)
 
         torch.nn.init.xavier_uniform_(
             self.linear_layer.weight,
