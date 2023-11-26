@@ -44,7 +44,7 @@ class JDCNet(nn.Module):
         self.maxpool2 = nn.MaxPool2d(kernel_size=(1, 20))
         # in = (b, 128, 31, 32) from res_block2, out = (b, 128, 31, 2)
         self.maxpool3 = nn.MaxPool2d(kernel_size=(1, 10))
-
+        
         # in = (b, 640, 31, 2), out = (b, 256, 31, 2)
         self.detector_conv = nn.Sequential(
             nn.Conv2d(640, 256, 1, bias=False),
@@ -64,10 +64,10 @@ class JDCNet(nn.Module):
             batch_first=True, bidirectional=True)  # (b, 31, 512)
 
         # input: (b * 31, 512)
-        self.classifier = nn.Linear(in_features=512, out_features=self.num_class)  # (b * 31, num_class)
+        self.classifier = bnb.nn.Linear8bitLt(input_features=512, output_features=self.num_class)  # (b * 31, num_class)
 
         # input: (b * 31, 512)
-        self.detector = nn.Linear(in_features=512, out_features=2)  # (b * 31, 2) - binary classifier
+        self.detector = bnb.nn.Linear8bitLt(input_features=512, output_features=2)  # (b * 31, 2) - binary classifier
 
         # initialize weights
         self.apply(self.init_weights)

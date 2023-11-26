@@ -99,7 +99,7 @@ class StyleTransformer1d(nn.Module):
             assert exists(context_mapping_features)
             self.to_time = nn.Sequential(
                 TimePositionalEmbedding(
-                    dim=channels, out_features=context_mapping_features
+                    dim=channels, output_features=context_mapping_features
                 ),
                 nn.GELU(),
             )
@@ -107,8 +107,8 @@ class StyleTransformer1d(nn.Module):
         if use_context_features:
             assert exists(context_features) and exists(context_mapping_features)
             self.to_features = nn.Sequential(
-                nn.Linear(
-                    in_features=context_features, out_features=context_mapping_features
+                bnb.nn.Linear8bitLt(
+                    input_features=context_features, output_features=context_mapping_features
                 ),
                 nn.GELU(),
             )
@@ -253,11 +253,12 @@ class StyleAttention(nn.Module):
 
         self.norm = AdaLayerNorm(style_dim, features)
         self.norm_context = AdaLayerNorm(style_dim, context_features)
-        self.to_q = nn.Linear(
-            in_features=features, out_features=mid_features, bias=False
+        self.to_q = bnb.nn.Linear8bitLt(
+            input_features=features, output_features=mid_features, bias=False
         )
-        self.to_kv = nn.Linear(
-            in_features=context_features, out_features=mid_features * 2, bias=False
+
+        self.to_kv = bnb.nn.Linear8bitLt(
+            input_features=context_features, output_features=mid_features * 2, bias=False,
         )
         self.attention = AttentionBase(
             features,
@@ -341,7 +342,7 @@ class Transformer1d(nn.Module):
             assert exists(context_mapping_features)
             self.to_time = nn.Sequential(
                 TimePositionalEmbedding(
-                    dim=channels, out_features=context_mapping_features
+                    dim=channels, output_features=context_mapping_features
                 ),
                 nn.GELU(),
             )
@@ -349,8 +350,8 @@ class Transformer1d(nn.Module):
         if use_context_features:
             assert exists(context_features) and exists(context_mapping_features)
             self.to_features = nn.Sequential(
-                nn.Linear(
-                    in_features=context_features, out_features=context_mapping_features
+                bnb.nn.Linear8bitLt(
+                    input_features=context_features, output_features=context_mapping_features
                 ),
                 nn.GELU(),
             )
@@ -484,9 +485,9 @@ class RelativePositionBias(nn.Module):
 def FeedForward(features: int, multiplier: int) -> nn.Module:
     mid_features = features * multiplier
     return nn.Sequential(
-        nn.Linear(in_features=features, out_features=mid_features),
+        bnb.nn.Linear8bitLt(input_features=features, output_features=mid_features),
         nn.GELU(),
-        nn.Linear(in_features=mid_features, out_features=features),
+        bnb.nn.Linear8bitLt(input_features=mid_features, output_features=features),
     )
 
 
@@ -498,7 +499,7 @@ class AttentionBase(nn.Module):
         head_features: int,
         num_heads: int,
         use_rel_pos: bool,
-        out_features: Optional[int] = None,
+        output_features: Optional[int] = None,
         rel_pos_num_buckets: Optional[int] = None,
         rel_pos_max_distance: Optional[int] = None,
     ):
@@ -515,10 +516,10 @@ class AttentionBase(nn.Module):
                 max_distance=rel_pos_max_distance,
                 num_heads=num_heads,
             )
-        if out_features is None:
-            out_features = features
+        if output_features is None:
+            output_features = features
             
-        self.to_out = nn.Linear(in_features=mid_features, out_features=out_features)
+        self.to_out = bnb.nn.Linear8bitLt(input_features=mid_features, output_features=output_features)
 
     def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
         # Split heads
@@ -542,7 +543,7 @@ class Attention(nn.Module):
         *,
         head_features: int,
         num_heads: int,
-        out_features: Optional[int] = None,
+        output_features: Optional[int] = None,
         context_features: Optional[int] = None,
         use_rel_pos: bool,
         rel_pos_num_buckets: Optional[int] = None,
@@ -555,16 +556,16 @@ class Attention(nn.Module):
 
         self.norm = nn.LayerNorm(features)
         self.norm_context = nn.LayerNorm(context_features)
-        self.to_q = nn.Linear(
-            in_features=features, out_features=mid_features, bias=False
+        self.to_q = bnb.nn.Linear8bitLt(
+            input_features=features, output_features=mid_features, bias=False
         )
-        self.to_kv = nn.Linear(
-            in_features=context_features, out_features=mid_features * 2, bias=False
+        self.to_kv = bnb.nn.Linear8bitLt(
+            input_features=context_features, output_features=mid_features * 2, bias=False
         )
 
         self.attention = AttentionBase(
             features,
-            out_features=out_features,
+            output_features=output_features,
             num_heads=num_heads,
             head_features=head_features,
             use_rel_pos=use_rel_pos,
@@ -671,10 +672,10 @@ class LearnedPositionalEmbedding(nn.Module):
         return fouriered
 
 
-def TimePositionalEmbedding(dim: int, out_features: int) -> nn.Module:
+def TimePositionalEmbedding(dim: int, output_features: int) -> nn.Module:
     return nn.Sequential(
         LearnedPositionalEmbedding(dim),
-        nn.Linear(in_features=dim + 1, out_features=out_features),
+        bnb.nn.Linear8bitLt(input_features=dim + 1, output_features=output_features),
     )
 
 class FixedEmbedding(nn.Module):
