@@ -68,11 +68,11 @@ def build_optimizer(parameters_dict, scheduler_params_dict, lr):
     # optim = dict([(key, AdamW(params, lr=lr, weight_decay=1e-4, betas=(0.0, 0.99), eps=1e-9))
     #                for key, params in parameters_dict.items()])
 
-    # optim = dict([(key, bnb.optim.AdamW8bit(params, lr=lr, weight_decay=1e-4, betas=(0.0, 0.99), eps=1e-9))
-    #             for key, params in parameters_dict.items()])
+    optim = dict([(key, bnb.optim.AdamW8bit(params, lr=lr, weight_decay=1e-4, betas=(0.0, 0.99), eps=1e-9))
+                for key, params in parameters_dict.items()])
 
-    optim = dict([(key, bnb.optim.Lion8bit(params, lr=lr, weight_decay=1e-4, betas=(0.0, 0.99), eps=1e-9))
-            for key, params in parameters_dict.items()])
+    # optim = dict([(key, bnb.optim.Lion8bit(params, lr=lr, weight_decay=1e-4, betas=(0.0, 0.99)))
+    #         for key, params in parameters_dict.items()])
 
     schedulers = dict([(key, define_scheduler(opt, scheduler_params_dict[key])) \
                        for key, opt in optim.items()])
